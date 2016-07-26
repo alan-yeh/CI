@@ -1,0 +1,60 @@
+require 'rake'
+require 'json'
+
+namespace :pod do
+    desc "Run xcode test and cocoapods lib lint"
+    task :lint do
+        # Detect pull request
+        if ENV['TRAVIS_PULL_REQUEST'].to_s.to_i > 0
+            puts 'Pull request detected. Not proceeding with deploy.'
+            exit
+        end
+
+        repo = "#{ENV['PROJECT']}"
+        if repo.length < 1
+            repo = ENV['TRAVIS_REPO_SLUG'].split("/")[1]
+        end
+
+        # run xcode test
+        sh("xcodebuild test -workspace Example/#{repo}.xcworkspace -scheme #{repo}-Example -sdk iphonesimulator9.3 ONLY_ACTIVE_ARCH=NO")
+
+		    # cocoapods lib lint
+		    sh("pod lib lint")
+    end
+
+    task :tag do
+		    repo = "#{ENV['PROJECT']}"
+        if repo.length < 1
+            repo = ENV['TRAVIS_REPO_SLUG'].split("/")[1]
+        end
+
+		    # remove .podspec.json files if exists
+		    `rm *.podspec.json`
+
+		    # get new tag
+		    sh("pod ipc spec #{repo}.podspec >> #{repo}.podspec.json")
+		    spec = JSON.parse(File.read("#{repo}.podspec.json"))
+		    new_tag = spec['version']
+
+		    # set up user info
+		    sh("git config user.name #{ENV['GH_USER']}")
+		    sh("git config user.email #{ENV['GH_EMAIL']}")
+
+		    # push new tag to repo
+		    output = `git tag | grep #{new_tag}`
+		    tag_exists = output.length > 0
+
+		    puts "tag #{new_tag} is existed, task pod:tag skipped." if tag_exists
+
+        #push tag to remote if tag not exists
+		    if !tag_exists
+            # set up origin url
+		        origin_url = `git remote get-url origin`
+            token_url = "https://#{ENV['GH_USER']}:#{ENV['GH_TOKEN']}@#{origin_url.split('//')[1]}"
+            sh("git remote set-url origin #{token_url}")
+
+            sh("git tag #{new_tag}")
+            sh("git push --tags")
+		    end
+    end
+end
