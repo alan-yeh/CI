@@ -30,7 +30,11 @@ namespace :site do
 		# Commit and push to github
 		commit_log = `git log -1 --pretty=format:"%s"`
 		Dir.chdir(DEST_DIR) do
-			sh("git config user.name $GH_USER")
+			commit_user = "#{ENV['GH_NAME']}"
+			if (commit_user.length < 1)
+				commit_user = "#{ENV['GH_USER']}"
+				
+			sh("git config user.name #{commit_user}")
 			sh("git config user.email $GH_EMAIL")
 			sh("git config push.default simple")
 			

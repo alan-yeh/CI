@@ -26,5 +26,6 @@ env:
     # travis encrypt 'GH_TOKEN=YOUR_TOKEN'
     - secure: "xxxxx"
     - GH_USER: alan-yeh
+    - GH_NAME: "Alan Yeh"
     - GH_EMAIL: alan@yerl.cn
 
