@@ -31,4 +31,5 @@ env:
     - secure: "xxxxx"
     #- PROJECT: AYPromise
     - GH_USER: alan-yeh
+    #- GH_NAME: alan-yeh
     - GH_EMAIL: alan@yerl.cn

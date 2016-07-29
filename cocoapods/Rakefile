@@ -24,9 +24,9 @@ namespace :pod do
 
     task :tag do
 		    repo = "#{ENV['PROJECT']}"
-        if repo.length < 1
-            repo = ENV['TRAVIS_REPO_SLUG'].split("/")[1]
-        end
+            if repo.length < 1
+                repo = ENV['TRAVIS_REPO_SLUG'].split("/")[1]
+            end
 
 		    # remove .podspec.json files if exists
 		    `rm *.podspec.json`
@@ -37,8 +37,14 @@ namespace :pod do
 		    new_tag = spec['version']
 
 		    # set up user info
-		    sh("git config user.name #{ENV['GH_USER']}")
+		    commit_user = "#{ENV['GH_NAME']}"
+		    if commit_user.length < 1
+			    commit_user = "#{ENV['GH_USER']}"
+		    end
+		    
+		    sh("git config user.name #{commit_user}")
 		    sh("git config user.email #{ENV['GH_EMAIL']}")
+		    sh("git config push.default simple")
 
 		    # push new tag to repo
 		    output = `git tag | grep #{new_tag}`
@@ -46,7 +52,7 @@ namespace :pod do
 
 		    puts "tag #{new_tag} is existed, task pod:tag skipped." if tag_exists
 
-        #push tag to remote if tag not exists
+            #push tag to remote if tag not exists
 		    if !tag_exists
             # set up origin url
 		        origin_url = `git remote get-url origin`
